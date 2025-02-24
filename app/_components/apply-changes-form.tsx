@@ -31,7 +31,7 @@ export function ApplyChangesForm() {
       setXml("");
       setSuccessMessage("Changes applied successfully");
     } catch (error: any) {
-      setErrorMessage("An error occurred while applying changes.");
+      setErrorMessage(error.message || "An error occurred while applying changes.");
     }
   };
 

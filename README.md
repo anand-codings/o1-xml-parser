@@ -1,3 +1,4 @@
+ // Start of Selection
 # o1 XML Parser
 
 A simple parse-and-apply tool that parses XML responses from o1 in ChatGPT and applies them to a target codebase.
@@ -26,8 +27,27 @@ npm install
 cp .env.example .env.local
 ```
 
+Then, update your `.env.local` file:
+
 ```bash
 PROJECT_DIRECTORY=/path/to/your/project # Ex: /Users/you/your-project
+```
+
+4. Run the app.
+
+For development mode:
+
+```bash
+npm run dev
+```
+
+This starts the app on http://localhost:3000.
+
+For production builds, run:
+
+```bash
+npm run build && npm start
+```
 ```
 
 ## The XML Prompt (updated 1/12/25)
