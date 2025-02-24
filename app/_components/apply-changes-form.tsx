@@ -5,8 +5,23 @@ import { useEffect, useState } from "react";
 export function ApplyChangesForm() {
   const [xml, setXml] = useState<string>("");
   const [projectDirectory, setProjectDirectory] = useState<string>("");
+  const [savedDirectories, setSavedDirectories] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  useEffect(() => {
+    // Load saved directories from localStorage on mount (ensure window is defined)
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("savedProjectDirectories");
+      if (stored) {
+        try {
+          setSavedDirectories(JSON.parse(stored));
+        } catch (e) {
+          console.error("Error parsing saved project directories from localStorage", e);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -20,6 +35,10 @@ export function ApplyChangesForm() {
     };
   }, [successMessage]);
 
+  const handleDirectorySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setProjectDirectory(e.target.value);
+  };
+
   const handleApply = async () => {
     setErrorMessage("");
     if (!xml.trim()) {
@@ -30,6 +49,14 @@ export function ApplyChangesForm() {
       await applyChangesAction(xml, projectDirectory.trim());
       setXml("");
       setSuccessMessage("Changes applied successfully");
+
+      // Save project directory if not already saved and if provided
+      const trimmedDir = projectDirectory.trim();
+      if (trimmedDir && !savedDirectories.includes(trimmedDir)) {
+        const newSaved = [...savedDirectories, trimmedDir];
+        setSavedDirectories(newSaved);
+        localStorage.setItem("savedProjectDirectories", JSON.stringify(newSaved));
+      }
     } catch (error: any) {
       setErrorMessage(error.message || "An error occurred while applying changes.");
     }
@@ -39,6 +66,23 @@ export function ApplyChangesForm() {
     <div className="max-w-xl w-full mx-auto p-4 flex flex-col gap-4">
       {errorMessage && <div className="text-red-400">{errorMessage}</div>}
       {successMessage && <div className="text-green-400">{successMessage}</div>}
+      {savedDirectories.length > 0 && (
+        <div className="flex flex-col">
+          <label className="mb-2 font-bold">Saved Project Directories:</label>
+          <select
+            className="border bg-secondary text-secondary-foreground p-2 w-full rounded-md"
+            value={projectDirectory}
+            onChange={handleDirectorySelect}
+          >
+            <option value="">Select a saved directory</option>
+            {savedDirectories.map((dir, index) => (
+              <option key={index} value={dir}>
+                {dir}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="flex flex-col">
         <label className="mb-2 font-bold">Project Directory:</label>
         <input
