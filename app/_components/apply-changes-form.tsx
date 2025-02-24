@@ -8,6 +8,7 @@ export function ApplyChangesForm() {
   const [savedDirectories, setSavedDirectories] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [summary, setSummary] = useState<{ totalFiles: number; [key: string]: number } | null>(null);
 
   useEffect(() => {
     // Load saved directories from localStorage on mount (ensure window is defined)
@@ -41,14 +42,16 @@ export function ApplyChangesForm() {
 
   const handleApply = async () => {
     setErrorMessage("");
+    setSummary(null);
     if (!xml.trim()) {
       setErrorMessage("Please paste XML before applying changes.");
       return;
     }
     try {
-      await applyChangesAction(xml, projectDirectory.trim());
+      const summaryData = await applyChangesAction(xml, projectDirectory.trim());
       setXml("");
       setSuccessMessage("Changes applied successfully");
+      setSummary(summaryData);
 
       // Save project directory if not already saved and if provided
       const trimmedDir = projectDirectory.trim();
@@ -108,6 +111,21 @@ export function ApplyChangesForm() {
       >
         Apply
       </button>
+      {summary && (
+        <div className="mt-4 p-4 border rounded-md">
+          <h3 className="font-bold mb-2">Summary</h3>
+          <p>Total Files: {summary.totalFiles}</p>
+          <ul>
+            {Object.entries(summary)
+              .filter(([key]) => key !== "totalFiles")
+              .map(([key, value]) => (
+                <li key={key}>
+                  {key}: {value}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
