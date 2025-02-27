@@ -1,7 +1,7 @@
 "use server";
 
 import { Suspense } from "react";
-import { ApplyChangesForm } from "./_components/apply-changes-form";
+import { ApplyChangesForm } from "./components/ApplyChangesForm";
 
 export default async function Page() {
   return (
