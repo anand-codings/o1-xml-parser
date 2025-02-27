@@ -3,7 +3,21 @@
 import { applyFileChanges } from "@/lib/apply-changes";
 import { parseXmlString } from "@/lib/xml-parser";
 
-export async function applyChangesAction(xml: string, projectDirectory: string): Promise<{ totalFiles: number; [key: string]: number }> {
+export interface FileChange {
+  file_summary: string;
+  file_operation: string;
+  file_path: string;
+  file_code?: string;
+  new_file_path?: string;
+}
+
+export interface ActionSummary {
+  totalFiles: number;
+  [key: string]: number | FileChange[];
+  changedFiles: FileChange[];
+}
+
+export async function applyChangesAction(xml: string, projectDirectory: string): Promise<ActionSummary> {
   const changes = await parseXmlString(xml);
 
   if (!changes || !Array.isArray(changes)) {
@@ -19,12 +33,22 @@ export async function applyChangesAction(xml: string, projectDirectory: string):
   }
 
   // Compute summary
-  const summary: { totalFiles: number; [key: string]: number } = { totalFiles: changes.length };
+  const summary: ActionSummary = { 
+    totalFiles: changes.length,
+    changedFiles: changes.map(change => ({
+      file_summary: change.file_summary,
+      file_operation: change.file_operation,
+      file_path: change.file_path,
+      new_file_path: change.new_file_path
+    }))
+  };
+  
   const actions = ["CREATE", "UPDATE", "DELETE", "MOVE", "DELETE_EMPTY_FOLDER"];
   actions.forEach((action) => { summary[action] = 0; });
+  
   changes.forEach(change => {
     const op = change.file_operation.toUpperCase();
-    summary[op] = (summary[op] || 0) + 1;
+    summary[op] = (summary[op] as number || 0) + 1;
   });
 
   const normalChanges = changes.filter(change => change.file_operation.toUpperCase() !== "DELETE_EMPTY_FOLDER");
